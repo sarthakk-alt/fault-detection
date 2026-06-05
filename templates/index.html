@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroInspect AI - Aircraft Damage Detection</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="glass-bg-glow"></div>
+    <div class="dashboard-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo-area">
+                <i class="fa-solid fa-plane-slant logo-icon"></i>
+                <div class="logo-text">
+                    <h1>AeroInspect <span class="accent-text">AI</span></h1>
+                    <p class="tagline">Automated Aircraft Surface Inspection System</p>
+                </div>
+            </div>
+            <div class="system-badge">
+                <span class="status-indicator online"></span>
+                <span>YOLOv8 Edge Engine</span>
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Side: Upload & Input Panel -->
+            <section class="panel upload-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-cloud-arrow-up icon-accent"></i>
+                    <h2>Capture & Upload</h2>
+                </div>
+                
+                <form id="upload-form" class="upload-form">
+                    <div id="dropzone" class="dropzone">
+                        <input type="file" id="image-input" name="image" accept="image/*" class="file-input">
+                        <div class="dropzone-content" id="dropzone-default">
+                            <i class="fa-solid fa-images upload-placeholder-icon"></i>
+                            <h3>Drag & Drop Aircraft Image</h3>
+                            <p>or click to browse local storage</p>
+                            <span class="file-limit-hint">Supports PNG, JPG, JPEG (Max 16MB)</span>
+                        </div>
+                        
+                        <!-- Image Preview (Hidden initially) -->
+                        <div class="preview-container hidden" id="preview-container">
+                            <img src="" alt="Upload Preview" id="image-preview" class="image-preview">
+                            <div class="scanner-line hidden" id="scanner-line"></div>
+                            <div class="scan-overlay-text hidden" id="scan-overlay-text">
+                                <i class="fa-solid fa-compact-disc fa-spin"></i>
+                                <span>Running AI Diagnostics...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="analyze-btn" class="btn btn-primary" disabled>
+                        <i class="fa-solid fa-microchip"></i> Run Damage Analysis
+                    </button>
+                    <button type="button" id="reset-btn" class="btn btn-secondary hidden">
+                        <i class="fa-solid fa-rotate-left"></i> Reset Scanner
+                    </button>
+                </form>
+            </section>
+
+            <!-- Right Side: Results & Report Panel (Hidden until prediction) -->
+            <section class="panel results-panel empty" id="results-panel">
+                <!-- Empty State (Shown initially) -->
+                <div class="empty-state-content" id="results-empty-state">
+                    <i class="fa-solid fa-shield-halved empty-icon"></i>
+                    <h3>Diagnostic Diagnostics Pending</h3>
+                    <p>Upload a component photograph and execute the scanner to generate damage classification charts, bounding box maps, and maintenance actions.</p>
+                </div>
+
+                <!-- Analysis Content (Hidden initially) -->
+                <div class="analysis-results hidden" id="analysis-results">
+                    <div class="panel-header">
+                        <i class="fa-solid fa-clipboard-list icon-accent"></i>
+                        <h2>Inspection Report</h2>
+                    </div>
+
+                    <div class="image-comparison-grid">
+                        <div class="img-card">
+                            <div class="img-badge">Original Image</div>
+                            <img src="" alt="Original" id="result-original-img">
+                        </div>
+                        <div class="img-card">
+                            <div class="img-badge annotated">AI Annotated Box Map</div>
+                            <img src="" alt="Annotated" id="result-annotated-img">
+                        </div>
+                    </div>
+
+                    <!-- Summary Metrics Row -->
+                    <div class="summary-metrics">
+                        <div class="metric-card" data-class="corrosion">
+                            <span class="metric-label">Corrosion</span>
+                            <span class="metric-value" id="count-corrosion">0</span>
+                        </div>
+                        <div class="metric-card" data-class="crack">
+                            <span class="metric-label">Cracks</span>
+                            <span class="metric-value" id="count-crack">0</span>
+                        </div>
+                        <div class="metric-card" data-class="dent">
+                            <span class="metric-label">Dents</span>
+                            <span class="metric-value" id="count-dent">0</span>
+                        </div>
+                    </div>
+
+                    <!-- Caption Box -->
+                    <div class="caption-container">
+                        <h3><i class="fa-solid fa-quote-left"></i> Auto-Generated Caption</h3>
+                        <p class="caption-text" id="report-caption">
+                            A crack is visible on the aircraft surface.
+                        </p>
+                    </div>
+
+                    <!-- Recommendations checklist -->
+                    <div class="recommendations-container">
+                        <h3><i class="fa-solid fa-wrench"></i> Recommended Maintenance Actions</h3>
+                        <ul class="recommendation-list" id="report-recommendations">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+
+                    <!-- Bounding Boxes list -->
+                    <div class="raw-data-container">
+                        <div class="accordion-header" id="raw-data-toggle">
+                            <h3><i class="fa-solid fa-code"></i> Detection Details</h3>
+                            <i class="fa-solid fa-chevron-down toggle-icon"></i>
+                        </div>
+                        <div class="accordion-content hidden" id="raw-data-content">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Anomaly Type</th>
+                                        <th>Confidence</th>
+                                        <th>Coordinates [X1, Y1, X2, Y2]</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detections-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+
+        </main>
+        
+        <footer class="app-footer">
+            <p>&copy; 2026 AeroInspect AI Systems &bull; Developed using Transfer Learning & Ultralytics YOLOv8</p>
+        </footer>
+    </div>
+
+    <!-- Javascript Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropzone = document.getElementById('dropzone');
+            const imageInput = document.getElementById('image-input');
+            const dropzoneDefault = document.getElementById('dropzone-default');
+            const previewContainer = document.getElementById('preview-container');
+            const imagePreview = document.getElementById('image-preview');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const uploadForm = document.getElementById('upload-form');
+            
+            const resultsPanel = document.getElementById('results-panel');
+            const resultsEmptyState = document.getElementById('results-empty-state');
+            const analysisResults = document.getElementById('analysis-results');
+            
+            const resultOriginalImg = document.getElementById('result-original-img');
+            const resultAnnotatedImg = document.getElementById('result-annotated-img');
+            const reportCaption = document.getElementById('report-caption');
+            const reportRecommendations = document.getElementById('report-recommendations');
+            const detectionsTableBody = document.getElementById('detections-table-body');
+            
+            const countCorrosion = document.getElementById('count-corrosion');
+            const countCrack = document.getElementById('count-crack');
+            const countDent = document.getElementById('count-dent');
+            
+            const scannerLine = document.getElementById('scanner-line');
+            const scanOverlayText = document.getElementById('scan-overlay-text');
+            const rawDataToggle = document.getElementById('raw-data-toggle');
+            const rawDataContent = document.getElementById('raw-data-content');
+
+            // Drag and Drop listeners
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('dragover');
+                }, false);
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files.length > 0) {
+                    imageInput.files = files;
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            dropzone.addEventListener('click', () => {
+                imageInput.click();
+            });
+
+            imageInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file (png, jpg, jpeg).');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    dropzoneDefault.classList.add('hidden');
+                    previewContainer.classList.remove('hidden');
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.classList.remove('hidden');
+                    resetBtn.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            // Reset UI
+            resetBtn.addEventListener('click', () => {
+                uploadForm.reset();
+                imagePreview.src = '';
+                previewContainer.classList.add('hidden');
+                dropzoneDefault.classList.remove('hidden');
+                analyzeBtn.disabled = true;
+                resetBtn.classList.add('hidden');
+                
+                resultsPanel.classList.add('empty');
+                resultsEmptyState.classList.remove('hidden');
+                analysisResults.classList.add('hidden');
+            });
+
+            // Toggle Details Accordion
+            rawDataToggle.addEventListener('click', () => {
+                rawDataContent.classList.toggle('hidden');
+                rawDataToggle.querySelector('.toggle-icon').classList.toggle('fa-chevron-up');
+                rawDataToggle.querySelector('.toggle-icon').classList.toggle('fa-chevron-down');
+            });
+
+            // Form Submit (Analyze)
+            uploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const file = imageInput.files[0];
+                if (!file) return;
+
+                // Show scanning animations
+                scannerLine.classList.remove('hidden');
+                scanOverlayText.classList.remove('hidden');
+                analyzeBtn.disabled = true;
+                resetBtn.classList.add('hidden');
+                
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Populate results
+                        resultOriginalImg.src = data.original_url + '?t=' + new Date().getTime();
+                        resultAnnotatedImg.src = data.annotated_url + '?t=' + new Date().getTime();
+                        
+                        // Populate counts
+                        countCorrosion.textContent = data.counts.corrosion || 0;
+                        countCrack.textContent = data.counts.crack || 0;
+                        countDent.textContent = data.counts.dent || 0;
+                        
+                        // Populate caption
+                        reportCaption.textContent = data.caption;
+                        
+                        // Populate recommendations
+                        reportRecommendations.innerHTML = '';
+                        data.recommendations.forEach(rec => {
+                            const li = document.createElement('li');
+                            li.innerHTML = `<i class="fa-solid fa-circle-check checklist-icon"></i> <span>${rec}</span>`;
+                            reportRecommendations.appendChild(li);
+                        });
+
+                        // Populate details table
+                        detectionsTableBody.innerHTML = '';
+                        if (data.damages.length === 0) {
+                            detectionsTableBody.innerHTML = `<tr><td colspan="3" class="text-center">No structural damage regions mapped.</td></tr>`;
+                        } else {
+                            data.damages.forEach(d => {
+                                const tr = document.createElement('tr');
+                                const roundedCoords = d.box.map(coord => Math.round(coord));
+                                tr.innerHTML = `
+                                    <td><span class="badge badge-${d.class}">${d.class.toUpperCase()}</span></td>
+                                    <td><strong>${d.confidence}%</strong></td>
+                                    <td class="coord-cell">[${roundedCoords.join(', ')}]</td>
+                                `;
+                                detectionsTableBody.appendChild(tr);
+                            });
+                        }
+
+                        // Display Results panel
+                        resultsPanel.classList.remove('empty');
+                        resultsEmptyState.classList.add('hidden');
+                        analysisResults.classList.remove('hidden');
+
+                        // Scroll results into view on mobile
+                        if (window.innerWidth < 1024) {
+                            resultsPanel.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    } else {
+                        alert('Inspection Error: ' + data.error);
+                    }
+                } catch (error) {
+                    console.error('API Error:', error);
+                    alert('An error occurred during communication with the inspection server.');
+                } finally {
+                    // Hide scanning animations
+                    scannerLine.classList.add('hidden');
+                    scanOverlayText.classList.add('hidden');
+                    analyzeBtn.disabled = false;
+                    resetBtn.classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

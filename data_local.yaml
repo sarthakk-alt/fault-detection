@@ -1,0 +1,7 @@
+path: C:/Users/sarthak24/Downloads/aircraft-surface-damage.v1i.yolov8
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 3
+names: ['corrosion', 'crack', 'dent']

@@ -1,0 +1,12 @@
+venv/
+dataset/
+runs/
+
+__pycache__/
+*.pyc
+
+*.pt
+*.h5
+
+.vscode/
+.idea/
