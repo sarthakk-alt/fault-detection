@@ -91,7 +91,11 @@ def get_recommendations_and_caption(counts):
     return caption, recommendations
 
 @app.route('/')
-def index():
+def landing():
+    return render_template('landing.html')
+
+@app.route('/inspect')
+def inspect():
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])

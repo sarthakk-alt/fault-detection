@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroInspect AI — Aircraft Damage Detection</title>
+    <meta name="description" content="AI-powered aircraft surface damage detection. Detect corrosion, cracks, and dents instantly.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #06080f;
+            color: #eef0f6;
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle background glow */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(124,106,255,0.12) 0%, transparent 70%);
+            top: -150px;
+            left: -100px;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%);
+            bottom: -100px;
+            right: -80px;
+            border-radius: 50%;
+            filter: blur(80px);
+            pointer-events: none;
+        }
+
+        .landing {
+            max-width: 640px;
+            position: relative;
+            z-index: 1;
+            animation: fadeUp 0.8s ease-out both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #7c6aff, #00e5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo span {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .logo .ai {
+            background: linear-gradient(135deg, #7c6aff, #00e5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1px;
+            margin-bottom: 1.2rem;
+        }
+
+        h1 .highlight {
+            background: linear-gradient(135deg, #7c6aff, #00e5ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: #8b92a8;
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, #7c6aff, #00e5ff);
+            color: #fff;
+            text-decoration: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            padding: 1rem 2.4rem;
+            border-radius: 14px;
+            transition: all 0.35s ease;
+            box-shadow: 0 6px 28px rgba(124,106,255,0.3);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 40px rgba(124,106,255,0.45);
+        }
+
+        .cta-btn .arrow {
+            transition: transform 0.3s ease;
+        }
+        .cta-btn:hover .arrow {
+            transform: translateX(4px);
+        }
+
+        /* Feature pills */
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            margin-top: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: #8b92a8;
+            font-weight: 500;
+        }
+
+        .pill i { font-size: 0.75rem; }
+        .pill.corrosion i { color: #facc15; }
+        .pill.crack i { color: #f87171; }
+        .pill.dent i { color: #fb923c; }
+
+        .footer {
+            position: fixed;
+            bottom: 1.5rem;
+            font-size: 0.72rem;
+            color: #555d75;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="landing">
+        <div class="logo">
+            <i class="fa-solid fa-plane-slash"></i>
+            <span>AeroInspect <span class="ai">AI</span></span>
+        </div>
+
+        <h1>Detect Aircraft Surface<br>Damage <span class="highlight">In Seconds</span></h1>
+
+        <p class="subtitle">
+            Upload a photo of any aircraft component and get instant AI-powered 
+            damage detection with maintenance recommendations.
+        </p>
+
+        <a href="/inspect" class="cta-btn" id="launch-btn">
+            <i class="fa-solid fa-microscope"></i>
+            Start Inspection
+            <span class="arrow">→</span>
+        </a>
+
+        <div class="features">
+            <div class="pill corrosion"><i class="fa-solid fa-droplet"></i> Corrosion</div>
+            <div class="pill crack"><i class="fa-solid fa-bolt-lightning"></i> Cracks</div>
+            <div class="pill dent"><i class="fa-solid fa-circle-dot"></i> Dents</div>
+        </div>
+    </div>
+
+    <div class="footer">&copy; 2026 AeroInspect AI &bull; Powered by YOLOv8</div>
+</body>
+</html>

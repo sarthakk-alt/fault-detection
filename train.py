@@ -1,6 +1,7 @@
 import os
 import sys
 import shutil
+import torch
 from ultralytics import YOLO
 
 def main():
@@ -19,19 +20,19 @@ def main():
     model = YOLO("yolov8n.pt")
     
     # Train the model
-    # We use 5 epochs to complete training quickly on CPU.
-    # User can modify this value for better accuracy.
-    epochs = 5
-    print(f"Training YOLOv8n for {epochs} epochs on CPU...")
+    epochs = 50
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Training YOLOv8n for {epochs} epochs on {device.upper()}...")
+    print("Training on 50% of dataset at 640px resolution.")
     
     try:
         results = model.train(
             data=yaml_path,
             epochs=epochs,
-            imgsz=320,
-            fraction=0.1, # Train on 3% of the dataset for rapid execution on CPU
-            workers=0,     # Prevent overhead of multi-threaded data loading on CPU
-            device="cpu",  # Force CPU usage
+            imgsz=640,
+            fraction=0.5,  # Train on 50% of the dataset
+            workers=0,     # Prevent overhead of multi-threaded data loading
+            device=device, # Auto-select GPU if available, else CPU
             project="aircraft_damage",
             name="yolov8_train"
         )
