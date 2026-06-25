@@ -57,6 +57,8 @@ python -m venv venv
 ```bash
 venv\Scripts\activate
 ```
+.\venv\Scripts\Activate.ps1 pw
+
 
 **Mac/Linux:**
 ```bash
